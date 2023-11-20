@@ -56,6 +56,10 @@ func main() {
 	r.HandleFunc("/historialtareas/{id:[0-9]+}", handlers.UpdateHistorialTarea).Methods("PUT")
 	r.HandleFunc("/historialtareas/{id:[0-9]+}", handlers.DeleteHistorialTarea).Methods("DELETE")
 
+	//Registro y login
+	r.HandleFunc("/usuarios", handlers.RegisterUsuario).Methods("POST")    // Nuevo manejador para registro
+	r.HandleFunc("/usuarios/login", handlers.LoginUsuario).Methods("POST") // Nuevo manejador para inicio de sesión
+
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)
 }

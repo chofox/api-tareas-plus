@@ -5,6 +5,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var db *sql.DB
@@ -406,4 +407,39 @@ func DeleteHistorialTarea(id int) error {
 		return err
 	}
 	return nil
+}
+
+// Estructura para la solicitud de inicio de sesión
+type LoginRequest struct {
+	CorreoElectronico string `json:"correoElectronico"`
+	Contrasena        string `json:"contrasena"`
+}
+
+// Obtener un usuario por su correo electrónico
+func GetUserByCorreoElectronico(correoElectronico string) (Usuario, error) {
+	user := Usuario{}
+	row := db.QueryRow("SELECT ID, Nombre, CorreoElectronico, Contrasena FROM Usuarios WHERE CorreoElectronico = ?", correoElectronico)
+	err := row.Scan(&user.ID, &user.Nombre, &user.CorreoElectronico, &user.Contrasena)
+	if err != nil {
+		return Usuario{}, err
+	}
+	return user, nil
+}
+
+// Verificar las credenciales del usuario
+func VerifyCredentials(correoElectronico, contrasena string) (bool, int, error) {
+	user := Usuario{}
+	row := db.QueryRow("SELECT ID, Nombre, CorreoElectronico, Contrasena FROM Usuarios WHERE CorreoElectronico = ?", correoElectronico)
+	err := row.Scan(&user.ID, &user.Nombre, &user.CorreoElectronico, &user.Contrasena)
+	if err != nil {
+		return false, 0, err
+	}
+
+	// Compara la contraseña ingresada con el hash almacenado
+	err = bcrypt.CompareHashAndPassword([]byte(user.Contrasena), []byte(contrasena))
+	if err != nil {
+		return false, 0, nil
+	}
+
+	return true, user.ID, nil
 }
